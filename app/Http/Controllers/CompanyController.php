@@ -1,10 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Http\Controllers\CompanyController;
-use App\Http\Controllers\AdvisorController;
 
 use App\Http\Requests\StoreCompanyRequest;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\UpdateCompanyRequest;
 use App\Models\Company;
 use Illuminate\Http\RedirectResponse;
@@ -49,14 +48,24 @@ class CompanyController extends Controller
     /**
      * Guardar empresa.
      */
-    public function store(StoreCompanyRequest $request): RedirectResponse
-    {
-        Company::create($request->validated());
+  public function store(StoreCompanyRequest $request): RedirectResponse
+{
+    $data = $request->validated();
 
-        return redirect()
-            ->route('companies.index')
-            ->with('success', 'Empresa creada correctamente.');
+    if ($request->hasFile('logo')) {
+        $data['logo'] = $request->file('logo')->store('companies/logos', 'public');
     }
+
+    if ($request->hasFile('cover')) {
+        $data['cover'] = $request->file('cover')->store('companies/covers', 'public');
+    }
+
+    Company::create($data);
+
+    return redirect()
+        ->route('companies.index')
+        ->with('success', 'Empresa creada correctamente.');
+}
 
     /**
      * Mostrar empresa.
@@ -81,14 +90,34 @@ class CompanyController extends Controller
     /**
      * Actualizar empresa.
      */
-    public function update(UpdateCompanyRequest $request, Company $company): RedirectResponse
-    {
-        $company->update($request->validated());
+  public function update(UpdateCompanyRequest $request, Company $company): RedirectResponse
+{
+    $data = $request->validated();
 
-        return redirect()
-            ->route('companies.index')
-            ->with('success', 'Empresa actualizada correctamente.');
+    if ($request->hasFile('logo')) {
+
+        if ($company->logo) {
+            Storage::disk('public')->delete($company->logo);
+        }
+
+        $data['logo'] = $request->file('logo')->store('companies/logos', 'public');
     }
+
+    if ($request->hasFile('cover')) {
+
+        if ($company->cover) {
+            Storage::disk('public')->delete($company->cover);
+        }
+
+        $data['cover'] = $request->file('cover')->store('companies/covers', 'public');
+    }
+
+    $company->update($data);
+
+    return redirect()
+        ->route('companies.index')
+        ->with('success', 'Empresa actualizada correctamente.');
+}
 
     /**
      * Eliminar empresa.

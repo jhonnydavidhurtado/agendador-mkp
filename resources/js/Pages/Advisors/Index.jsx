@@ -122,8 +122,30 @@ export default function Index({ advisors, filters }) {
                                 >
 
                                     <td className="px-6 py-4">
-                                       {advisor.user?.name ?? '-'}
-                                    </td>
+    <div className="flex items-center gap-3">
+        {advisor.photo ? (
+            <img
+                src={`/storage/${advisor.photo}`}
+                alt={advisor.user?.name ?? 'Asesor'}
+                className="h-12 w-12 rounded-full border object-cover shadow-sm"
+            />
+        ) : (
+            <div className="flex h-12 w-12 items-center justify-center rounded-full border bg-gray-100 text-xs text-gray-500">
+                Sin foto
+            </div>
+        )}
+
+        <div>
+            <p className="font-medium text-gray-800">
+                {advisor.user?.name ?? '-'}
+            </p>
+
+            <p className="text-sm text-gray-500">
+                {advisor.user?.email ?? '-'}
+            </p>
+        </div>
+    </div>
+</td>
 
                                     <td className="px-6 py-4">
                                        {advisor.company?.name ?? '-'}

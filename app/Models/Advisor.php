@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Advisor extends Model
 {
@@ -25,6 +26,16 @@ class Advisor extends Model
         'status',
 
     ];
+    protected $appends = [
+    'photo_url',
+];
+
+public function getPhotoUrlAttribute(): ?string
+{
+    return $this->photo
+        ? Storage::disk('public')->url($this->photo)
+        : null;
+}
 
     protected function casts(): array
     {

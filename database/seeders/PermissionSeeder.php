@@ -25,6 +25,7 @@ class PermissionSeeder extends Seeder
             'companies.create',
             'companies.edit',
             'companies.delete',
+            'manage companies',
 
             // Usuarios
             'users.view',
@@ -37,12 +38,14 @@ class PermissionSeeder extends Seeder
             'advisors.create',
             'advisors.edit',
             'advisors.delete',
+            'manage advisors',
 
             // Clientes
             'clients.view',
             'clients.create',
             'clients.edit',
             'clients.delete',
+            'manage clients',
 
             // Servicios
             'services.view',
@@ -55,12 +58,14 @@ class PermissionSeeder extends Seeder
             'calendars.create',
             'calendars.edit',
             'calendars.delete',
+            'manage calendars',
 
             // Citas
             'appointments.view',
             'appointments.create',
             'appointments.edit',
             'appointments.delete',
+            'manage appointments',
 
             // Configuración
             'settings.view',

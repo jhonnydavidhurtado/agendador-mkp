@@ -2,63 +2,58 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class NotificationController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Mostrar las notificaciones del usuario autenticado.
      */
-    public function index()
+    public function index(Request $request): Response
     {
-        //
+        $notifications = $request->user()
+            ->notifications()
+            ->latest()
+            ->paginate(15);
+
+        return Inertia::render('Notifications/Index', [
+            'notifications' => $notifications,
+            'unreadCount' => $request->user()
+                ->unreadNotifications()
+                ->count(),
+        ]);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Marcar una notificación como leída.
      */
-    public function create()
-    {
-        //
+    public function markAsRead(
+        Request $request,
+        string $notification
+    ): RedirectResponse {
+        $userNotification = $request->user()
+            ->notifications()
+            ->where('id', $notification)
+            ->firstOrFail();
+
+        $userNotification->markAsRead();
+
+        return back();
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Marcar todas las notificaciones como leídas.
      */
-    public function store(Request $request)
-    {
-        //
-    }
+    public function markAllAsRead(
+        Request $request
+    ): RedirectResponse {
+        $request->user()
+            ->unreadNotifications
+            ->markAsRead();
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return back();
     }
 }

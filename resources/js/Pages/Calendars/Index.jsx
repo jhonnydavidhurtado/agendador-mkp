@@ -69,6 +69,14 @@ export default function Index({
                                 </div>
 
                                 <Link
+                                  href={route('dashboard')}
+                                 className="rounded-lg bg-gray-600 px-5 py-2 text-white hover:bg-gray-700"
+                               >
+                                ← Volver al Dashboard
+                              </Link>
+                                
+
+                                <Link
                                     href={route('calendars.create')}
                                     className="rounded-lg bg-indigo-600 px-5 py-2 text-white hover:bg-indigo-700"
                                 >

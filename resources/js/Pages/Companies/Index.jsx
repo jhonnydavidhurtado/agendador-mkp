@@ -98,9 +98,25 @@ export default function Index({ companies, filters }) {
                                     key={company.id}
                                     className="border-t"
                                 >
-                                    <td className="px-6 py-4">
-                                        {company.name}
-                                    </td>
+                                   <td className="px-6 py-4">
+    <div className="flex items-center gap-3">
+        {company.logo ? (
+            <img
+                src={`/storage/${company.logo}`}
+                alt={company.name}
+                className="h-12 w-12 rounded-lg border object-contain shadow-sm"
+            />
+        ) : (
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg border bg-gray-100 text-xs text-gray-500">
+                Sin logo
+            </div>
+        )}
+
+        <span className="font-medium text-gray-800">
+            {company.name}
+        </span>
+    </div>
+</td>
 
                                     <td className="px-6 py-4">
                                         {company.nit}

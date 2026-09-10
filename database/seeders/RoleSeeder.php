@@ -23,7 +23,7 @@ class RoleSeeder extends Seeder
         */
 
         $superAdmin = Role::firstOrCreate([
-            'name' => 'Super Admin',
+            'name' => 'Super Usuario',
             'guard_name' => 'web',
         ]);
 
@@ -45,6 +45,16 @@ class RoleSeeder extends Seeder
         */
 
         $superAdmin->syncPermissions(
+            Permission::all()
+        );
+
+        // Mantener compatibilidad con usuarios creados con el nombre anterior.
+        $legacySuperAdmin = Role::firstOrCreate([
+            'name' => 'Super Admin',
+            'guard_name' => 'web',
+        ]);
+
+        $legacySuperAdmin->syncPermissions(
             Permission::all()
         );
 

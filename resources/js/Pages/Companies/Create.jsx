@@ -16,16 +16,22 @@ export default function Create() {
         address: '',
         city: '',
         country: 'Colombia',
+        logo: null,
+        cover: null,
         status: true,
     });
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('companies.store'));
+
+        post(route('companies.store'), {
+            forceFormData: true,
+        });
     };
 
     return (
         <AppLayout>
+
             <Head title="Nueva Empresa" />
 
             <PageHeader
@@ -76,7 +82,6 @@ export default function Create() {
                             error={errors.city}
                         />
 
-
                         <FormInput
                             label="País"
                             value={data.country}
@@ -87,26 +92,103 @@ export default function Create() {
                         <FormSelect
                             label="Estado"
                             value={data.status ? '1' : '0'}
-                            onChange={(e) => setData('status', e.target.value === '1')}
+                            onChange={(e) =>
+                                setData('status', e.target.value === '1')
+                            }
                             error={errors.status}
-                             options={[
-                              { value: '1', label: 'Activo' },
-                              { value: '0', label: 'Inactivo' },
+                            options={[
+                                {
+                                    value: '1',
+                                    label: 'Activo',
+                                },
+                                {
+                                    value: '0',
+                                    label: 'Inactivo',
+                                },
                             ]}
                         />
 
                     </div>
-                    
+
                     <div className="mt-6">
+
                         <FormInput
                             label="Dirección"
                             value={data.address}
-                            onChange={(e) => setData('address', e.target.value)}
+                            onChange={(e) =>
+                                setData('address', e.target.value)
+                            }
                             error={errors.address}
-                      />
+                        />
+
                     </div>
 
-                   
+                    {/* Imágenes */}
+
+                    <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        {/* Logo */}
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Logo
+                            </label>
+
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) =>
+                                    setData(
+                                        'logo',
+                                        e.target.files[0] || null
+                                    )
+                                }
+                                className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+                            />
+
+                            {errors.logo && (
+                                <p className="mt-1 text-sm text-red-600">
+                                    {errors.logo}
+                                </p>
+                            )}
+
+                            <p className="mt-1 text-xs text-gray-500">
+                                Máximo 2 MB.
+                            </p>
+                        </div>
+
+                        {/* Portada */}
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Portada
+                            </label>
+
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) =>
+                                    setData(
+                                        'cover',
+                                        e.target.files[0] || null
+                                    )
+                                }
+                                className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+                            />
+
+                            {errors.cover && (
+                                <p className="mt-1 text-sm text-red-600">
+                                    {errors.cover}
+                                </p>
+                            )}
+
+                            <p className="mt-1 text-xs text-gray-500">
+                                Máximo 4 MB.
+                            </p>
+                        </div>
+
+                    </div>
+
                 </FormSection>
 
                 <div className="flex justify-end gap-3">
@@ -123,7 +205,9 @@ export default function Create() {
                         disabled={processing}
                         className="px-5 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
                     >
-                        {processing ? 'Guardando...' : 'Guardar Empresa'}
+                        {processing
+                            ? 'Guardando...'
+                            : 'Guardar Empresa'}
                     </button>
 
                 </div>

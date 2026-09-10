@@ -2,64 +2,87 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\company_settings;
+use App\Models\Company;
+use App\Models\CompanySetting;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
+use Inertia\Response;
 
-class CompanySettingsController extends Controller
+class CompanySettingController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request): Response
     {
-        //
+        $user = $request->user();
+        $isSuperUsuario = $user->hasRole('Super Usuario');
+        $companies = Company::query()
+            ->when(!$isSuperUsuario, fn ($query) => $query->whereKey($user->company_id))
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $companyId = (int) ($request->input('company_id') ?: $companies->first()?->id);
+        $company = $companies->firstWhere('id', $companyId);
+        $settings = $company
+            ? CompanySetting::firstOrCreate(
+                ['company_id' => $company->id],
+                $this->defaultSettings()
+            )
+            : null;
+
+        return Inertia::render('Settings/Index', [
+            'companies' => $companies,
+            'selectedCompany' => $company?->only(['id', 'name']),
+            'settings' => $settings?->toArray() ?? $this->defaultSettings(),
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function update(Request $request): RedirectResponse
     {
-        //
+        $user = $request->user();
+        $isSuperUsuario = $user->hasRole('Super Usuario');
+
+        $validated = $request->validate([
+            'company_id' => [
+                'required',
+                'integer',
+                Rule::exists('companies', 'id'),
+            ],
+            'timezone' => ['required', 'string', 'max:100'],
+            'currency' => ['required', 'string', 'max:10'],
+            'language' => ['required', 'string', 'max:10'],
+            'appointment_interval' => ['required', 'integer', 'in:15,30,45,60,90,120'],
+            'start_week' => ['required', 'in:monday,sunday'],
+            'primary_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'secondary_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'notifications' => ['boolean'],
+        ]);
+
+        if (!$isSuperUsuario && (int) $validated['company_id'] !== (int) $user->company_id) {
+            abort(403, 'No tienes permiso para modificar esta configuración.');
+        }
+
+        CompanySetting::updateOrCreate(
+            ['company_id' => $validated['company_id']],
+            collect($validated)->except('company_id')->all()
+        );
+
+        return redirect()
+            ->route('settings.index', ['company_id' => $validated['company_id']])
+            ->with('success', 'Configuración guardada correctamente.');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    private function defaultSettings(): array
     {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(company_settings $company_settings)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(company_settings $company_settings)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, company_settings $company_settings)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(company_settings $company_settings)
-    {
-        //
+        return [
+            'timezone' => 'America/Bogota',
+            'currency' => 'COP',
+            'language' => 'es',
+            'appointment_interval' => 30,
+            'start_week' => 'monday',
+            'primary_color' => '#0d6efd',
+            'secondary_color' => '#6c757d',
+            'notifications' => true,
+        ];
     }
 }
