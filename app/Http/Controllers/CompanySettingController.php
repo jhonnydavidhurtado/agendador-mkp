@@ -17,7 +17,7 @@ class CompanySettingController extends Controller
         $user = $request->user();
         $isSuperUsuario = $user->hasRole('Super Usuario');
         $companies = Company::query()
-            ->when(!$isSuperUsuario, fn ($query) => $query->whereKey($user->company_id))
+            ->when(! $isSuperUsuario, fn ($query) => $query->whereKey($user->company_id))
             ->orderBy('name')
             ->get(['id', 'name']);
 
@@ -34,6 +34,7 @@ class CompanySettingController extends Controller
             'companies' => $companies,
             'selectedCompany' => $company?->only(['id', 'name']),
             'settings' => $settings?->toArray() ?? $this->defaultSettings(),
+            'canEdit' => $user->can('settings.edit'),
         ]);
     }
 
@@ -58,7 +59,7 @@ class CompanySettingController extends Controller
             'notifications' => ['boolean'],
         ]);
 
-        if (!$isSuperUsuario && (int) $validated['company_id'] !== (int) $user->company_id) {
+        if (! $isSuperUsuario && (int) $validated['company_id'] !== (int) $user->company_id) {
             abort(403, 'No tienes permiso para modificar esta configuración.');
         }
 

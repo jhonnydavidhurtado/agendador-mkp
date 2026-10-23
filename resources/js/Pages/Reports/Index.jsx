@@ -4,6 +4,7 @@ import { Head, router } from '@inertiajs/react';
 import PageContainer from '@/Components/Layout/PageContainer';
 import PageHeader from '@/Components/Form/PageHeader';
 import EmptyState from '@/Components/Table/EmptyState';
+import Pagination from '@/Components/Table/Pagination';
 
 const statusLabels = {
     pending: 'Pendientes',
@@ -86,7 +87,7 @@ export default function Index({ month, summary, appointments }) {
                         </thead>
 
                         <tbody>
-                            {appointments.length === 0 && (
+                            {appointments.data.length === 0 && (
                                 <tr>
                                     <td colSpan={6}>
                                         <EmptyState title="No hay citas para el mes seleccionado." />
@@ -94,7 +95,7 @@ export default function Index({ month, summary, appointments }) {
                                 </tr>
                             )}
 
-                            {appointments.map((appointment) => (
+                            {appointments.data.map((appointment) => (
                                 <tr key={appointment.id} className="border-t">
                                     <td className="px-6 py-4 text-gray-700">{appointment.date}</td>
                                     <td className="px-6 py-4 text-gray-700">{appointment.hour}</td>
@@ -111,6 +112,7 @@ export default function Index({ month, summary, appointments }) {
                         </tbody>
                     </table>
                 </div>
+                <Pagination links={appointments.links} />
             </PageContainer>
         </AppLayout>
     );

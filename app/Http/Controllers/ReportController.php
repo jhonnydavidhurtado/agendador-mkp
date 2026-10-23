@@ -19,32 +19,25 @@ class ReportController extends Controller
         $startDate = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
         $endDate = $startDate->copy()->endOfMonth();
 
-        $appointments = Appointment::query()
-            ->with(['company:id,name', 'client:id,name', 'advisor:id,company_id', 'service:id,name'])
+        $appointmentsQuery = Appointment::query()
             ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
             ->when(
-                !$user->hasRole('Super Usuario'),
+                ! $user->hasRole('Super Usuario'),
                 fn ($query) => $query->where('company_id', $user->company_id)
-            )
+            );
+
+        $byStatus = (clone $appointmentsQuery)
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $appointments = (clone $appointmentsQuery)
+            ->with(['company:id,name', 'client:id,name', 'service:id,name'])
             ->latest('date')
             ->latest('hour')
-            ->get();
-
-        $byStatus = $appointments
-            ->groupBy('status')
-            ->map(fn ($items) => $items->count())
-            ->sortKeys();
-
-        return Inertia::render('Reports/Index', [
-            'month' => $month,
-            'summary' => [
-                'total' => $appointments->count(),
-                'pending' => $byStatus->get('pending', 0),
-                'confirmed' => $byStatus->get('confirmed', 0),
-                'completed' => $byStatus->get('completed', 0),
-                'cancelled' => $byStatus->get('cancelled', 0),
-            ],
-            'appointments' => $appointments->map(fn (Appointment $appointment) => [
+            ->paginate(15)
+            ->withQueryString()
+            ->through(fn (Appointment $appointment) => [
                 'id' => $appointment->id,
                 'date' => $appointment->date?->format('d/m/Y'),
                 'hour' => substr((string) $appointment->hour, 0, 5),
@@ -52,7 +45,18 @@ class ReportController extends Controller
                 'company' => $appointment->company?->name,
                 'client' => $appointment->client?->name,
                 'service' => $appointment->service?->name,
-            ])->values(),
+            ]);
+
+        return Inertia::render('Reports/Index', [
+            'month' => $month,
+            'summary' => [
+                'total' => array_sum($byStatus->all()),
+                'pending' => $byStatus->get('pending', 0),
+                'confirmed' => $byStatus->get('confirmed', 0),
+                'completed' => $byStatus->get('completed', 0),
+                'cancelled' => $byStatus->get('cancelled', 0),
+            ],
+            'appointments' => $appointments,
         ]);
     }
 }

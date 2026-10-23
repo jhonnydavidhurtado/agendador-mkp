@@ -1,7 +1,22 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import AppLayout from '@/Layouts/AppLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import PageContainer from '@/Components/Layout/PageContainer';
 
-export default function Index({ auth, notifications, unreadCount }) {
+const notificationTitles = {
+    created: 'Nueva cita',
+    updated: 'Cita actualizada',
+    cancelled: 'Cita cancelada',
+    deleted: 'Cita eliminada',
+};
+
+const statusLabels = {
+    pending: 'Pendiente',
+    confirmed: 'Confirmada',
+    completed: 'Completada',
+    cancelled: 'Cancelada',
+};
+
+export default function Index({ notifications, unreadCount }) {
     const markAsRead = (notificationId) => {
         router.patch(
             route('notifications.read', notificationId),
@@ -23,77 +38,45 @@ export default function Index({ auth, notifications, unreadCount }) {
     };
 
     return (
-        <AuthenticatedLayout
-            user={auth.user}
-            header={
-                <div className="flex items-center justify-between">
-                    <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-                        Notificaciones
-                    </h2>
+        <AppLayout>
+            <Head title="Notificaciones" />
 
+            <PageContainer>
+                <div className="mb-6 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">Notificaciones</h1>
+                        <p className="mt-1 text-sm text-gray-600">
+                            Tienes {unreadCount} notificación{unreadCount === 1 ? '' : 'es'} sin leer.
+                        </p>
+                    </div>
                     {unreadCount > 0 && (
                         <button
                             type="button"
                             onClick={markAllAsRead}
-                            className="text-sm text-blue-600 hover:text-blue-800"
+                            className="text-sm font-medium text-blue-600 hover:text-blue-800"
                         >
                             Marcar todas como leídas
                         </button>
                     )}
                 </div>
-            }
-        >
-            <Head title="Notificaciones" />
 
-            <div className="py-6">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div className="overflow-hidden rounded-xl bg-white shadow-sm">
 
-                    {/* Resumen */}
-                    <div className="mb-6 bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6">
+                    {notifications.data.length === 0 ? (
+                        <div className="p-10 text-center">
 
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h3 className="text-lg font-semibold text-gray-900">
-                                        Mis notificaciones
-                                    </h3>
+                            <div className="mb-3 text-4xl">🔔</div>
 
-                                    <p className="mt-1 text-sm text-gray-600">
-                                        Tienes {unreadCount} notificación
-                                        {unreadCount === 1 ? '' : 'es'} sin leer.
-                                    </p>
-                                </div>
+                            <h2 className="text-lg font-semibold text-gray-900">
+                                No tienes notificaciones
+                            </h2>
 
-                                <div className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-semibold">
-                                    {unreadCount} sin leer
-                                </div>
-                            </div>
-
+                            <p className="mt-2 text-sm text-gray-500">
+                                Cuando recibas una notificación, aparecerá aquí.
+                            </p>
                         </div>
-                    </div>
-
-                    {/* Lista */}
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-
-                        {notifications.data.length === 0 ? (
-                            <div className="p-10 text-center">
-
-                                <div className="text-4xl mb-3">
-                                    🔔
-                                </div>
-
-                                <h3 className="text-lg font-semibold text-gray-900">
-                                    No tienes notificaciones
-                                </h3>
-
-                                <p className="mt-2 text-sm text-gray-500">
-                                    Cuando recibas una nueva notificación,
-                                    aparecerá aquí.
-                                </p>
-
-                            </div>
-                        ) : (
-                            <div className="divide-y divide-gray-200">
+                    ) : (
+                        <div className="divide-y divide-gray-200">
 
                                 {notifications.data.map((notification) => {
 
@@ -120,9 +103,9 @@ export default function Index({ auth, notifications, unreadCount }) {
                                                             📅
                                                         </span>
 
-                                                        <h4 className="font-semibold text-gray-900">
-                                                            Nueva cita
-                                                        </h4>
+                                                        <h2 className="font-semibold text-gray-900">
+                                                            {notificationTitles[data.event] || 'Nueva cita'}
+                                                        </h2>
 
                                                         {unread && (
                                                             <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded-full">
@@ -157,12 +140,12 @@ export default function Index({ auth, notifications, unreadCount }) {
                                                             <span className="font-medium text-gray-600">
                                                                 Estado:
                                                             </span>{' '}
-                                                            {data.status || '—'}
+                                                            {statusLabels[data.status] || data.status || '—'}
                                                         </div>
 
                                                     </div>
 
-                                                    {data.appointment_id && (
+                                                    {data.appointment_id && data.event !== 'deleted' && (
                                                         <div className="mt-4">
                                                             <Link
                                                                 href={route(
@@ -198,15 +181,12 @@ export default function Index({ auth, notifications, unreadCount }) {
                                     );
                                 })}
 
-                            </div>
-                        )}
+                        </div>
+                    )}
+                </div>
 
-                    </div>
-
-                    {/* Paginación */}
-                    {notifications.links &&
-                        notifications.links.length > 3 && (
-                            <div className="mt-6 flex flex-wrap justify-center gap-2">
+                {notifications.links && notifications.links.length > 3 && (
+                    <div className="mt-6 flex flex-wrap justify-center gap-2">
 
                                 {notifications.links.map((link, index) => (
                                     <button
@@ -233,11 +213,9 @@ export default function Index({ auth, notifications, unreadCount }) {
                                     />
                                 ))}
 
-                            </div>
-                        )}
-
-                </div>
-            </div>
-        </AuthenticatedLayout>
+                    </div>
+                )}
+            </PageContainer>
+        </AppLayout>
     );
 }

@@ -9,6 +9,7 @@ use App\Http\Controllers\CalendarHourController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanySettingController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
@@ -29,9 +30,9 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', DashboardController::class)
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 require __DIR__.'/auth.php';
 
@@ -120,8 +121,10 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::get('/settings', [CompanySettingController::class, 'index'])
+        ->middleware('permission:settings.view')
         ->name('settings.index');
     Route::patch('/settings', [CompanySettingController::class, 'update'])
+        ->middleware('permission:settings.edit')
         ->name('settings.update');
 
     /*

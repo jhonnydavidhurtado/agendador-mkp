@@ -21,23 +21,23 @@ class PasswordResetTest extends TestCase
 
     public function test_reset_password_link_can_be_requested(): void
     {
+        $user = User::factory()->create();
         Notification::fake();
 
-        $user = User::factory()->create();
+        $response = $this->post('/forgot-password', ['email' => $user->email]);
 
-        $this->post('/forgot-password', ['email' => $user->email]);
-
+        $response->assertRedirect()->assertSessionHasNoErrors();
         Notification::assertSentTo($user, ResetPassword::class);
     }
 
     public function test_reset_password_screen_can_be_rendered(): void
     {
+        $user = User::factory()->create();
         Notification::fake();
 
-        $user = User::factory()->create();
+        $response = $this->post('/forgot-password', ['email' => $user->email]);
 
-        $this->post('/forgot-password', ['email' => $user->email]);
-
+        $response->assertRedirect()->assertSessionHasNoErrors();
         Notification::assertSentTo($user, ResetPassword::class, function ($notification) {
             $response = $this->get('/reset-password/'.$notification->token);
 
@@ -49,12 +49,12 @@ class PasswordResetTest extends TestCase
 
     public function test_password_can_be_reset_with_valid_token(): void
     {
+        $user = User::factory()->create();
         Notification::fake();
 
-        $user = User::factory()->create();
+        $response = $this->post('/forgot-password', ['email' => $user->email]);
 
-        $this->post('/forgot-password', ['email' => $user->email]);
-
+        $response->assertRedirect()->assertSessionHasNoErrors();
         Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
             $response = $this->post('/reset-password', [
                 'token' => $notification->token,
